@@ -1,1 +1,1 @@
-# VindiniumGo
+# vindinium-go
