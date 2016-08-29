@@ -11,7 +11,7 @@ import (
 )
 
 // PostRequest sends an HTTP request
-func PostRequest(url string, body map[string]string) model.GameState {
+func PostRequest(url string, body map[string]string) *model.GameState {
 	var respGameState model.GameState
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(marshal(body)))
 	if err != nil {
@@ -19,7 +19,7 @@ func PostRequest(url string, body map[string]string) model.GameState {
 	} else {
 		return unmarshal(resp)
 	}
-	return respGameState
+	return &respGameState
 }
 
 func marshal(body map[string]string) []byte {
@@ -30,7 +30,7 @@ func marshal(body map[string]string) []byte {
 	return jsonBody
 }
 
-func unmarshal(resp *http.Response) model.GameState {
+func unmarshal(resp *http.Response) *model.GameState {
 	var gameState model.GameState
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
@@ -42,5 +42,5 @@ func unmarshal(resp *http.Response) model.GameState {
 			fmt.Println("Unable to unmarshal body: ", err)
 		}
 	}
-	return gameState
+	return &gameState
 }
