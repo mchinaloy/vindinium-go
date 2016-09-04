@@ -1,23 +1,28 @@
 # vindinium-go
-A Vindinium bot using GoLang.
+A Vindinium bot using GoLang and the [A* Search Algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm)
 
 It takes two possible command line arguments - 
 
-| Mode        | BotName           |
+| Mode        | API Key           |
 | ------------- |:-------------:|
-| Training     | randomBot |
-| Arena      | samuraiBot      |
+| Training     | yourKey |
+| Arena      | yourKey      |
 
 ```
-./vindinium-go training randomBot
-./vindinium-go arena samuraiBot
+./vindinium-go training yourKey
 ```
 If all is working well you should see output that looks like the following:
 
 ```
-Starting GoBot with settings: training and randomBot
+Starting GoBot with settings mode=training, key=1234
 
-Game starting in mode: http://vindinium.org/api/training
+Game starting at url=http://vindinium.org/api/training, viewurl=http://vindinium.org/1234
+
+Located a player mine to go after x: 3, y: 5
+Moving in direction: North
+
 Move #: 4 of 800
-Move #: 8 of 800
+The closest mine is owned by me x: 3, y: 5, looking for an alternative
+Located a player mine to go after x: 3, y: 10
+Moving in direction: East
 ```
