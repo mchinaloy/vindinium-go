@@ -14,22 +14,15 @@ const (
 	trainingURL = "http://vindinium.org/api/training"
 )
 
+var key string
+
 func main() {
 	mode := os.Args[1]
-	botName := os.Args[2]
+	key = os.Args[2]
 
-	fmt.Printf("\nStarting GoBot with settings: %s and %s\n", mode, botName)
+	fmt.Printf("\nStarting GoBot with settings mode=%s, key=%s", mode, key)
 
-	selectMode(mode, selectBot(botName))
-}
-
-func selectBot(botName string) ai.Bot {
-	switch botName {
-	case "samuraiBot" :
-		return new(aibot.SamuraiBot)
-	default:
-		return new(aibot.RandomBot)
-	}
+	selectMode(mode, new(aibot.AStarBot))
 }
 
 func selectMode(mode string, bot ai.Bot) {
@@ -43,25 +36,25 @@ func selectMode(mode string, bot ai.Bot) {
 
 func arena(bot ai.Bot) {
 	var body = make(map[string]string)
-	body["key"] = "awffitw4"
+	body["key"] = key
 	play(arenaURL, body, bot)
 }
 
 func training(bot ai.Bot) {
 	var body = make(map[string]string)
-	body["key"] = "awffitw4"
-	body["map"] = "m2"
+	body["key"] = key
+	body["map"] = "m6"
 	body["turns"] = "200"
 	play(trainingURL, body, bot)
 }
 
 func play(url string, body map[string]string, bot ai.Bot) {
 	gameState := request.PostRequest(url, body)
-	fmt.Printf("\nGame starting in mode: %s", url)
+	fmt.Printf("\n\nGame starting at url=%s, viewurl=%s\n", url, gameState.ViewURL)
 	count := 0
 	for gameState.Game.Finished != true && gameState.Hero.Crashed != true {
-		gameState = bot.Move(gameState.PlayURL, gameState)
-		fmt.Printf("\nMove #: %d of %d", gameState.Game.Turn, gameState.Game.MaxTurns)
+		gameState = bot.Move(gameState.PlayURL, gameState, key)
+		fmt.Printf("\n\nMove #: %d of %d", gameState.Game.Turn, gameState.Game.MaxTurns)
 		count++
 	}
 	fmt.Printf("\nGame finished, view the replay here: %s", gameState.ViewURL)

@@ -15,7 +15,7 @@ func PostRequest(url string, body map[string]string) *model.GameState {
 	var respGameState model.GameState
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(marshal(body)))
 	if err != nil {
-		fmt.Println("Unable to POST request: ", err)
+		fmt.Printf("\nUnable to POST request=%s", err)
 	} else {
 		return unmarshal(resp)
 	}
@@ -25,7 +25,7 @@ func PostRequest(url string, body map[string]string) *model.GameState {
 func marshal(body map[string]string) []byte {
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
-		fmt.Println("Unable to marshal body: ", err)
+		fmt.Printf("\nUnable to marshal body%s", err)
 	}
 	return jsonBody
 }
@@ -35,11 +35,11 @@ func unmarshal(resp *http.Response) *model.GameState {
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Unable to read response: ", err)
+		fmt.Printf("\nUnable to read response=%s", err)
 	} else {
 		err := json.Unmarshal(body, &gameState)
 		if err != nil {
-			fmt.Println("Unable to unmarshal body: ", err)
+			fmt.Printf("\nUnable to unmarshal body=%s", err)
 		}
 	}
 	return &gameState

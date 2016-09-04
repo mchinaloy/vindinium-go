@@ -1,6 +1,8 @@
 package model
 
-import "fmt"
+import (
+	"strings"
+)
 
 // Board represents the tiles in the game
 type Board struct {
@@ -9,7 +11,7 @@ type Board struct {
 	Finished bool
 }
 
-func ParseBoard(board *Board) *[][]Coordinate {
+func ParseBoard(board *Board) [][]Coordinate {
 	x := board.Size
 	y := board.Size
 
@@ -21,10 +23,8 @@ func ParseBoard(board *Board) *[][]Coordinate {
 
 	startIndex := 0
 	multiplier := 2
-	fmt.Println("Board size: ", board.Size)
 	for i := 0; i < board.Size; i++ {
 		boardLine := board.Tiles[startIndex:(board.Size) * multiplier]
-		fmt.Println(boardLine)
 		lineStartIndex := 0
 		lineOffset := 2
 		for j := 0; j < board.Size; j++ {
@@ -38,10 +38,10 @@ func ParseBoard(board *Board) *[][]Coordinate {
 		multiplier = multiplier + 2
 	}
 
-	return &tiles
+	return tiles
 }
 
-func createCoordinate (boardTile string, row int, column int) *Coordinate {
+func createCoordinate(boardTile string, row int, column int) *Coordinate {
 	coordinate := new(Coordinate)
 	coordinate.X = row
 	coordinate.Y = column
@@ -56,13 +56,13 @@ func createCoordinate (boardTile string, row int, column int) *Coordinate {
 		coordinate.Type = Tavern
 		return coordinate
 	case boardTile == "$-" :
-		coordinate.Type = Mine
+		coordinate.Type = NeutralMine
 		return coordinate
-	case boardTile[0:1] == "$" :
-		coordinate.Type = PlayerMine
+	case strings.Contains(boardTile, "$") :
+		coordinate.Type = boardTile[0:2]
 		return coordinate
 	default:
-		coordinate.Type = Player
+		coordinate.Type = boardTile[0:2]
 		return coordinate
 	}
 }
