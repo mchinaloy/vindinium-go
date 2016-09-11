@@ -9,7 +9,7 @@ It takes two possible command line arguments -
 | Arena      | yourKey      |
 
 ```
-./vindinium-go training yourKey
+./vindinium-go training yourKey e.g. awffitw4
 ```
 If all is working well you should see output that looks like the following:
 

@@ -15,10 +15,16 @@ const (
 )
 
 var key string
+var url string
+var mode string
 
 func main() {
-	mode := os.Args[1]
+	mode = os.Args[1]
 	key = os.Args[2]
+
+	if len(os.Args) > 3 {
+		url = os.Args[3]
+	}
 
 	fmt.Printf("\nStarting GoBot with settings mode=%s, key=%s", mode, key)
 
@@ -37,7 +43,11 @@ func selectMode(mode string, bot ai.Bot) {
 func arena(bot ai.Bot) {
 	var body = make(map[string]string)
 	body["key"] = key
-	play(arenaURL, body, bot)
+	if url != "" {
+		play(url, body, bot)
+	} else {
+		play(arenaURL, body, bot)
+	}
 }
 
 func training(bot ai.Bot) {
@@ -45,12 +55,17 @@ func training(bot ai.Bot) {
 	body["key"] = key
 	body["map"] = "m6"
 	body["turns"] = "200"
-	play(trainingURL, body, bot)
+	if url != "" {
+		play(url, body, bot)
+	} else {
+		play(trainingURL, body, bot)
+	}
 }
 
 func play(url string, body map[string]string, bot ai.Bot) {
 	gameState := request.PostRequest(url, body)
 	fmt.Printf("\n\nGame starting at url=%s, viewurl=%s\n", url, gameState.ViewURL)
+	fmt.Println("Waiting for players ...")
 	count := 0
 	for gameState.Game.Finished != true && gameState.Hero.Crashed != true {
 		gameState = bot.Move(gameState.PlayURL, gameState, key)
