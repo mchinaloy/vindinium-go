@@ -40,29 +40,34 @@ func makeDecision(board [][]model.Coordinate, gameState *model.GameState, key st
 
 	var target []astar.Point
 
-	player := shouldSwitchToMurderMode(gameState)
+	player := switchToMurderMode(gameState)
 
 	gameTurnProgress := (gameState.Game.Turn / gameState.Game.MaxTurns) * 100
 
-	nearestTavern := findNearestObjective(gameState, board, model.Tavern, false)
+	nearestTavern, _ := findNearestObjective(gameState, board, model.Tavern)
 
-	if isAtTavern(gameState, nearestTavern) && gameState.Hero.Gold > 0 && gameState.Hero.Life < 100 {
+	nearestPlayer, canKillNearestPlayer := canKillNearestPlayer(gameState, board)
+
+	if canKillNearestPlayer {
+		target = nearestPlayer
+		fmt.Printf("\n The nearest player is weak, within range and he has mines, trying to murder him at=%s", target)
+	} else if isAtTavern(gameState, nearestTavern) && gameState.Hero.Gold > 0 && gameState.Hero.Life < 100 {
 		target = nearestTavern
 		fmt.Printf("\n At a tavern at=%s, drinking to get full HP", target)
 	} else {
 		if gameState.Hero.Life < 60 || shouldStandStillAtTavern(gameState) && gameState.Hero.Gold > 0 {
 			fmt.Printf("\n HP is=%d, searching for a tavern", gameState.Hero.Life)
-			target = findNearestObjective(gameState, board, model.Tavern, false)
+			target, _ = findNearestObjective(gameState, board, model.Tavern)
 		} else if murderMode {
 			var playerId = model.Player + strconv.Itoa(player.Id);
 			target = findObjective(gameState, board, playerId)
 			fmt.Printf("\n Player=%s holds a lot of mines, going after them at=%s", playerId, target)
 		} else {
-			if existsThereNeutralMines(gameState, board) && gameTurnProgress > 60 {
-				target = findNearestObjective(gameState, board, model.NeutralMine, false)
+			if existsNeutralMines(gameState, board) && gameTurnProgress > 60 {
+				target, _ = findNearestObjective(gameState, board, model.NeutralMine)
 				fmt.Println("Going for a Neutral Mine at=", target)
 			} else {
-				target = findNearestObjective(gameState, board, model.PlayerMine, true)
+				target, _ = findNearestObjective(gameState, board, model.PlayerMine)
 				fmt.Println("Going for a Player Mine at=", target)
 			}
 		}
@@ -155,7 +160,7 @@ func getDirectionFromStartTarget(start []astar.Point, target []astar.Point) stri
 	}
 }
 
-func existsThereNeutralMines(gameState *model.GameState, board [][]model.Coordinate) bool {
+func existsNeutralMines(gameState *model.GameState, board [][]model.Coordinate) bool {
 	for i := 0; i < gameState.Game.Board.Size; i++ {
 		for j := 0; j < gameState.Game.Board.Size; j++ {
 			if board[i][j].Type == model.NeutralMine {
@@ -167,7 +172,7 @@ func existsThereNeutralMines(gameState *model.GameState, board [][]model.Coordin
 	return false
 }
 
-func shouldSwitchToMurderMode(gameState *model.GameState) *model.Hero {
+func switchToMurderMode(gameState *model.GameState) *model.Hero {
 	playerWithMostMines := gameState.Game.Heroes[0]
 
 	for i := 0; i < len(gameState.Game.Heroes); i ++ {
@@ -188,6 +193,22 @@ func shouldSwitchToMurderMode(gameState *model.GameState) *model.Hero {
 	return &playerWithMostMines
 }
 
+func canKillNearestPlayer(gameState *model.GameState, board [][]model.Coordinate) ([]astar.Point, bool) {
+	nearestPlayerLocation, distance := findNearestObjective(gameState, board, model.Player)
+	rawPlayerId := board[nearestPlayerLocation[0].Row][nearestPlayerLocation[0].Col].Type
+	nearestPlayerId := rawPlayerId[1:]
+
+	for i := 0; i < len(gameState.Game.Heroes); i++ {
+		if strconv.Itoa(gameState.Game.Heroes[i].Id) == nearestPlayerId {
+			if gameState.Game.Heroes[i].Life < gameState.Hero.Life && gameState.Game.Heroes[i].MineCount > 0 && distance < 4 {
+				return nearestPlayerLocation, true
+			}
+		}
+	}
+
+	return nearestPlayerLocation, false
+}
+
 func findObjective(gameState *model.GameState, board [][]model.Coordinate, objective string) []astar.Point {
 	row := 0
 	col := 0
@@ -202,7 +223,8 @@ func findObjective(gameState *model.GameState, board [][]model.Coordinate, objec
 	return []astar.Point{{Row: row, Col: col}}
 }
 
-func findNearestObjective(gameState *model.GameState, board [][]model.Coordinate, objective string, isPlayerMine bool) []astar.Point {
+
+func findNearestObjective(gameState *model.GameState, board [][]model.Coordinate, objective string) ([]astar.Point, int) {
 	closestRow := 0
 	closestCol := 0
 	bestDiff := 0
@@ -210,17 +232,8 @@ func findNearestObjective(gameState *model.GameState, board [][]model.Coordinate
 
 	for i := 0; i < gameState.Game.Board.Size; i++ {
 		for j := 0; j < gameState.Game.Board.Size; j++ {
-			if strings.Contains(board[i][j].Type, objective) {
+			if strings.Contains(board[i][j].Type, objective) && !strings.Contains(board[i][j].Type, strconv.Itoa(gameState.Hero.Id)) {
 				fmt.Printf("\nLocated a %s to go after x=%d, y=%d", objective, i, j)
-				if isPlayerMine {
-					var playerId = model.PlayerMine + strconv.Itoa(gameState.Hero.Id);
-					if strings.Contains(board[i][j].Type, model.PlayerMine) {
-						if board[i][j].Type == playerId {
-							fmt.Printf("\nFound a mine which is owned by me x=%d, y=%d, looking for an alternative", i, j)
-							continue
-						}
-					}
-				}
 				if foundFirst == true {
 					rowDiff, colDiff := calculateNearestDiff(gameState, i, j)
 					if (rowDiff + colDiff) < bestDiff {
@@ -238,7 +251,7 @@ func findNearestObjective(gameState *model.GameState, board [][]model.Coordinate
 			}
 		}
 	}
-	return []astar.Point{{Row: closestRow, Col: closestCol}}
+	return []astar.Point{{Row: closestRow, Col: closestCol}}, bestDiff
 }
 
 func calculateNearestDiff(gameState *model.GameState, row int, col int) (int, int) {
