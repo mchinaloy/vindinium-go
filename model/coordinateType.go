@@ -6,4 +6,5 @@ const (
 	NeutralMine = "$-"
 	PlayerMine = "$"
 	Land = " "
+	Player = "@"
 )

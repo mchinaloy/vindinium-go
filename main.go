@@ -10,13 +10,15 @@ import (
 )
 
 const (
-	arenaURL    = "http://vindinium.org/api/arena"
+	arenaURL = "http://vindinium.org/api/arena"
 	trainingURL = "http://vindinium.org/api/training"
 )
 
-var key string
-var url string
-var mode string
+var (
+	key string
+	url string
+	mode string
+)
 
 func main() {
 	mode = os.Args[1]
@@ -46,14 +48,16 @@ func arena(bot ai.Bot) {
 	if url != "" {
 		play(url, body, bot)
 	} else {
-		play(arenaURL, body, bot)
+		for {
+			play(arenaURL, body, bot)
+		}
 	}
 }
 
 func training(bot ai.Bot) {
 	var body = make(map[string]string)
 	body["key"] = key
-	body["map"] = "m6"
+	body["map"] = "m3"
 	body["turns"] = "200"
 	if url != "" {
 		play(url, body, bot)
@@ -64,13 +68,12 @@ func training(bot ai.Bot) {
 
 func play(url string, body map[string]string, bot ai.Bot) {
 	gameState := request.PostRequest(url, body)
+	fmt.Printf("body=%s", gameState.Game.Board)
 	fmt.Printf("\n\nGame starting at url=%s, viewurl=%s\n", url, gameState.ViewURL)
-	fmt.Println("Waiting for players ...")
 	count := 0
 	for gameState.Game.Finished != true && gameState.Hero.Crashed != true {
 		gameState = bot.Move(gameState.PlayURL, gameState, key)
-		fmt.Printf("\n\nMove #: %d of %d", gameState.Game.Turn, gameState.Game.MaxTurns)
 		count++
 	}
-	fmt.Printf("\nGame finished, view the replay here: %s", gameState.ViewURL)
+	fmt.Printf("\nGame finished, view the replay here=%s", gameState.ViewURL)
 }

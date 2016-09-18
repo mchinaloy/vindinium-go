@@ -11,7 +11,14 @@ type Board struct {
 	Finished bool
 }
 
+var (
+	TotalNumberOfMines int
+)
+
 func ParseBoard(board *Board) [][]Coordinate {
+
+	TotalNumberOfMines = 0
+
 	x := board.Size
 	y := board.Size
 
@@ -57,9 +64,11 @@ func createCoordinate(boardTile string, row int, column int) *Coordinate {
 		return coordinate
 	case boardTile == "$-" :
 		coordinate.Type = NeutralMine
+		TotalNumberOfMines++
 		return coordinate
 	case strings.Contains(boardTile, "$") :
 		coordinate.Type = boardTile[0:2]
+		TotalNumberOfMines++
 		return coordinate
 	default:
 		coordinate.Type = boardTile[0:2]
