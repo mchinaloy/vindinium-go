@@ -48,9 +48,7 @@ func arena(bot ai.Bot) {
 	if url != "" {
 		play(url, body, bot)
 	} else {
-		for {
-			play(arenaURL, body, bot)
-		}
+		play(arenaURL, body, bot)
 	}
 }
 
@@ -67,13 +65,15 @@ func training(bot ai.Bot) {
 }
 
 func play(url string, body map[string]string, bot ai.Bot) {
-	gameState := request.PostRequest(url, body)
-	fmt.Printf("body=%s", gameState.Game.Board)
-	fmt.Printf("\n\nGame starting at url=%s, viewurl=%s\n", url, gameState.ViewURL)
-	count := 0
-	for gameState.Game.Finished != true && gameState.Hero.Crashed != true {
-		gameState = bot.Move(gameState.PlayURL, gameState, key)
-		count++
+	for {
+		gameState := request.PostRequest(url, body)
+		fmt.Printf("body=%s", gameState.Game.Board)
+		fmt.Printf("\n\nGame starting at url=%s, viewurl=%s\n", url, gameState.ViewURL)
+		count := 0
+		for gameState.Game.Finished != true && gameState.Hero.Crashed != true {
+			gameState = bot.Move(gameState.PlayURL, gameState, key)
+			count++
+		}
+		fmt.Printf("\nGame finished, view the replay here=%s", gameState.ViewURL)
 	}
-	fmt.Printf("\nGame finished, view the replay here=%s", gameState.ViewURL)
 }
